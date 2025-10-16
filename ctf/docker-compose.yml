@@ -2,31 +2,42 @@ version: '3.8'
 
 services:
   ctfd:
-    image: ctfd/ctfd:latest
+    image: ctfd/ctfd:4.3.2        # préfère version taguée (ex: 4.3.2) plutôt que :latest
     container_name: ctfd
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@ctfd-db/ctfd
+      - DATABASE_URL=mysql+pymysql://ctfd:${MYSQL_PASSWORD}@ctfd-db/ctfd
+    env_file:
+      - .env
     volumes:
       - ./ctfd/uploads:/var/lib/CTFd/uploads
     depends_on:
-      - ctfd-db
+      ctfd-db:
+        condition: service_healthy
     networks:
       - ctf-net
 
   ctfd-db:
-    image: mysql:8
+    image: mysql:8.0.36          # pinne une version mineure
     container_name: ctfd-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ctfd
       MYSQL_USER: ctfd
-      MYSQL_PASSWORD: ctfd
-      MYSQL_ROOT_PASSWORD: changeme
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    env_file:
+      - .env
     volumes:
-      - ./mysql:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
       - ctf-net
 
@@ -38,6 +49,8 @@ services:
       - "5001:5000"
     networks:
       - ctf-net
+    # volumes:             # optionnel si tu veux monter le flag/DB depuis l'hôte
+    #   - ./sql_injection/data:/app/data
 
   file_upload:
     build: ./file_upload
@@ -47,6 +60,8 @@ services:
       - "5002:5000"
     networks:
       - ctf-net
+    volumes:
+      - ./file_upload/uploads:/app/uploads   # utile pour persister/uploads durant le TP
 
   command_injection:
     build: ./command_injection
@@ -56,6 +71,9 @@ services:
       - "5003:5000"
     networks:
       - ctf-net
+
+volumes:
+  mysql_data:
 
 networks:
   ctf-net:
