@@ -1,0 +1,4 @@
+CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT,
+password TEXT);
+CREATE TABLE secrets (id INTEGER PRIMARY KEY AUTOINCREMENT, secret TEXT);
+INSERT INTO secrets (secret) VALUES ('FLAG{FLAG_92_injection}');
