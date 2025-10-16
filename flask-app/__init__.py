@@ -1,9 +1,22 @@
 from flask import Flask
 
 def create_app():
-    app = Flask(__name__)
+    try:
+        app = Flask(__name__)
+        print("Flask initialisé avec succès")
 
-    from .routes import main
-    app.register_blueprint(main)
+        try:
+            from .routes import main
+            app.register_blueprint(main)
+            print("Routes enregistrées avec succès")
 
-    return app
+        except Exception as e:
+            print(f"Erreur lors de l'import ou de l'enregistrement des routes : {e}")
+            raise
+
+        print("🚀 Application Flask prête à être lancée")
+        return app
+
+    except Exception as e:
+        print(f"❌ Erreur critique lors de la création de l'application Flask : {e}")
+        raise
