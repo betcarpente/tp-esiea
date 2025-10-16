@@ -1,10 +1,13 @@
 version: 2
 updates:
+    #Search on Python
   - package-ecosystem: "pip"         
-    directory: "/"                   
+    directory: "/"        
+    # Scan every week           
     schedule:
       interval: "weekly"              
     commit-message:
       prefix: "chore"
+    #PR limit depandabot can do
     open-pull-requests-limit: 10
     rebase-strategy: "auto"

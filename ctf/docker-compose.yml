@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  ctfd:
+    image: ctfd/ctfd:latest
+    container_name: ctfd
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@ctfd-db/ctfd
+    volumes:
+      - ./ctfd/uploads:/var/lib/CTFd/uploads
+    depends_on:
+      - ctfd-db
+    networks:
+      - ctf-net
+
+  ctfd-db:
+    image: mysql:8
+    container_name: ctfd-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ctfd
+      MYSQL_USER: ctfd
+      MYSQL_PASSWORD: ctfd
+      MYSQL_ROOT_PASSWORD: changeme
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - ctf-net
+
+  sql_injection:
+    build: ./sql_injection
+    container_name: ctf_sql_injection
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    networks:
+      - ctf-net
+
+  file_upload:
+    build: ./file_upload
+    container_name: ctf_file_upload
+    restart: unless-stopped
+    ports:
+      - "5002:5000"
+    networks:
+      - ctf-net
+
+  command_injection:
+    build: ./command_injection
+    container_name: ctf_command_injection
+    restart: unless-stopped
+    ports:
+      - "5003:5000"
+    networks:
+      - ctf-net
+
+networks:
+  ctf-net:
+    driver: bridge
